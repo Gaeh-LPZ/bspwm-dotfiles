@@ -1,29 +1,38 @@
 #!/bin/bash
 
-REPO="$HOME/bspwm-dotfile"
-
-mkdir -p ~/.config/bspwm
-mkdir -p ~/.config/sxhkd
-mkdir -p ~/.config/picom
-mkdir -p ~/.config/polybar
-mkdir -p ~/.config/kitty
-mkdir -p ~/.config/rofi
-
 # Update system
-echo "Updating your system …"
-sudo pacman -Syyu --noconfirm
+echo "Updating your system"
+sudo pacman -Syu --noconfirm
+
+clear
+echo "System uploaded"
+
+
+REPO=$HOME/bspwm-dotfile
+
+# Making the directories
+
+#mkdir -p ~/.config/bspwm
+#mkdir -p ~/.config/sxhkd
+#mkdir -p ~/.config/picom
+#mkdir -p ~/.config/polybar
+#mkdir -p ~/.config/kitty
+#mkdir -p ~/.config/rofi
 
 # install the dependencies
-source dependencies.conf
+#source dependencies.conf
 
-for dpn in ${dependencies[@]}; do
-sudo pacman -Sy --noconfirm ${dpn}
-done
+#for dpn in ${DEPENDENCIES[@]}; do
+#	sudo pacman -Sy --noconfirm ${dpn}
+#done
+
+clear
+echo "Dependencies installed"
 
 # Create the files
 echo "Creating files in ~/bspwm-dotfiles"
 
-# bspwm
+#bspwm
 mkdir -p $REPO/bspwm
 cat <<EOF > $REPO/bspwm/bspwmrc
 #! /bin/sh
@@ -47,17 +56,20 @@ bspc rule -a Screenkey manage=off
 
 xrandr -s 1920x1080
 setxkbmap -layout latam
-feh --bg-scale $HOME/Imagenes/fondo.png
-sh $HOME/.config/polybar/launch.sh
-picom --conf $HOME/.config/picom/picom.conf
+feh --bg-scale ~/Imagenes/fondo.png
+sh ~/.config/polybar/launch.sh
+picom --conf ~/.config/picom/picom.conf
 EOF
 
-# make it executable
+echo "bspwrc file created successfully"
+
+# Making the bspwrc executable
 chmod +x $REPO/bspwm/bspwmrc
 
-#sxhkdrc
+# sxhdrc
 mkdir -p $REPO/sxhkd
-cat <<EOF > $REPO/sxhkd/sxhkdrc
+echo "Creating sxhkdrc in $REPO/sxhkd"
+cat << EOF > $REPO/sxhkd/sxhkdrc
 #
 # wm independent hotkeys
 #
@@ -201,9 +213,11 @@ XF86MonBrightnessUp
 XF86MonBrightnessDown
 	brightnessctl set 5%-
 EOF
+echo "sxhkdrc file created successfully"
 
 # picom
 mkdir -p $REPO/picom
+echo "Creating picom.conf in $REPO/picom"
 cat <<EOF > $REPO/picom/picom.conf
 # General
 backend = "xrender";
@@ -220,10 +234,32 @@ active-opacity = 1.0;
 frame-opacity = 0.9;
 EOF
 
+echo "picom.conf created successfully"
+
 # Polybar
-# Config.ini
+# launch.sh
+echo "Creating polybar files"
+echo "Creating launch file in $REPO/polybar"
+
 mkdir -p $REPO/polybar
-cat <<EOF > $REPO/polybar/config.ini
+cat <<EOF > $REPO/polybar/launch.sh
+#!/usr/bin/env sh
+# Terminar instancias previas de la Polybar
+killall -q polybar
+
+# Esperar hasta que todos los procesos de Polybar hayan sido terminados
+while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
+
+# Iniciar Polybar
+polybar example &
+EOF
+
+echo "launch.sh created successfully"
+chmod +x $REPO/polybar/launch.sh
+
+# config.ini
+echo "Creating config.ini in $REPO/polybar"
+cat <<'EOF' > $REPO/polybar/config.ini
 [colors]
 background = ${xrdb:color0:#2E3440}
 foreground = ${xrdb:color7:#FFFFFF}
@@ -312,7 +348,6 @@ full-at = 99
 time-format = %H:%M
 poll-interval = 2
 offset-x = 1%
-
 format-charging = <animation-charging> <label-charging>
 label-charging = %{F#FF69B4}%{F-} %percentage%% %{F#FFFFFF}%time%%{F-}
 
@@ -342,7 +377,7 @@ label-margin-left = 2
 
 [module/network]
 type = custom/script
-exec = $HOME/.config/polybar/scripts/network-status.sh
+exec = /home/gael/.config/polybar/scripts/network-status.sh
 interval = 10
 
 [module/volume]
@@ -353,29 +388,18 @@ label-volume = %percentage%%
 label-muted = %{F#FF69B4}󰸈 Mute%{F-}
 font-0 = "Hack Nerd Font size=10;2"
 
-ramp-volume-0 = 󰕿 
+ramp-volume-0 = 󰕿
 ramp-volume-1 = 󰖀
 ramp-volume-2 = 󰕾
 ramp-volume-mute = "󰸈 "
-ramp-volume-foreground = #FFFFFF
+ramp-volume-foreground = #FFFFFF%
 EOF
 
-# Launch.sh
-cat <<EOF > $REPO/polybar/launch.sh
-#!/usr/bin/env sh
-# Terminar instancias previas de la Polybar
-killall -q polybar
+echo "config.ini created successfully"
 
-# Esperar hasta que todos los procesos de Polybar hayan sido terminados
-while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
-
-# Iniciar Polybar
-polybar example &
-EOF
-
-# Network Status
+# Network status
 mkdir -p $REPO/polybar/scripts
-cat <<EOF > $REPO/polybar/scripts/network-status.sh
+cat <<'EOF' > $REPO/polybar/scripts/network-status.sh
 #!/bin/bash
 
 # Obtiene el nombre de la interfaz de red activa
@@ -395,10 +419,12 @@ else
 fi
 EOF
 
+chmod +x $REPO/polybar/scripts/network-status.sh
+
 # Rofi theme
 mkdir $REPO/rofi/themes
-wget -O $REPO/rofi/themes/rounded-common.rasi https://raw.githubusercontent.com/newmanls/rofi-themes-collection/master/themes/rounded-common.rasi
-wget -O $REPO/rofi/themes/rounded-pink-dark.rasi https://raw.githubusercontent.com/newmanls/rofi-themes-collection/master/themes/rounded-pink-dark.rasi
+wget -O $REPO/rofi/themes/rounded-common.rasi https://raw.githubusercontent.com/newmanls/rofi-themes-collection/refs/heads/master/themes/template/rounded-template.rasi
+wget -O $REPO/rofi/themes/rounded-pink-dark.rasi https://raw.githubusercontent.com/newmanls/rofi-themes-collection/refs/heads/master/themes/rounded-pink-dark.rasi
 echo "To install select the rofi theme please make rofi-theme-selector and chose rounded-pink-dark"
 
 # Symlink
@@ -408,6 +434,5 @@ ln -sf $REPO/picom/picom.conf $HOME/.config/picom/picom.conf
 ln -sf $REPO/polybar/config.ini $HOME/.config/polybar/config.ini
 ln -sf $REPO/polybar/launch.sh $HOME/.config/polybar/launch.sh
 ln -sf $REPO/polybar/scripts/network-status.sh $HOME/.config/polybar/scripts/network-status.sh
-ln -sf $REPO/rofi/themes $HOME/.config/rofi/themes
-
-echo -e \"\\n✅ Entorno BSPWM instalado con éxito. Reinicia sesión o ejecuta 'startx' para comenzar.\\n\"
+ln -sf $REPO/rofi/themes/rounded-template.rasi $HOME/.config/rofi/themes/rounded-template.rasi
+ln -sf $REPO/rofi/themes/rounded-pink-dark.rasi $HOME/.config/rofi/themes/rounded-template.rasi
